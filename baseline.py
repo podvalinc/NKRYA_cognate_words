@@ -145,13 +145,16 @@ def get_only_root(pairs):
 
 def getEvristicCognate(word1, word2):
     mix_roots = {"гар": "гор", "клан": "клон", "твар": "твор", "зар": "зор", "плав": "плов", "кас": "кос", "мак": "мок",
-                 "равн": "ровн", "раст": "ращ", "ращ": "рос", "раст": "рос", "скак": "скоч", "лаг": "лож",
+                 "равн": "ровн", "раст": "ращ", "ращ": "рос", "рос": "раст", "скак": "скоч", "лаг": "лож",
                  "бер": "бир", "дер": "дир", "мер": "мир", "пер": "пир", "тер": "тир", "жег": "жиг", "блест": "блист",
                  "стел": "стил", "чет": "чит"}
     root1, root2 = getRoots([word1, word2])
     print(root1, root2)
     root1 = get_only_root(root1)
     root2 = get_only_root(root2)
+    # TODO: Blyat Danix
+    root1 = map(lambda x: x.replace("ё", "е"), root1)
+    root2 = map(lambda x: x.replace("ё", "е"), root2)
     root1_mix = []
     for r in root1:
         root1_mix.extend(find_possible_root_alternations(r))

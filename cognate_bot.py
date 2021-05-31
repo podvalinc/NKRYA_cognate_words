@@ -25,16 +25,16 @@ def register_user(message):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    markup = telebot.types.ReplyKeyboardMarkup(row_width=3)
-    btn_root = telebot.types.KeyboardButton('Найти корень слова🔎')
+    markup = telebot.types.ReplyKeyboardMarkup(row_width=3, resize_keyboard=True)
+    btn_root = telebot.types.KeyboardButton('Найти корень слова')
     btn_cognate = telebot.types.KeyboardButton('Является ли пара однокоренной?')
     markup.row(btn_root, btn_cognate)
     bot.send_message(message.from_user.id, """Добро пожаловать в бота для проекта НКРЯ 2.0 
-    Этот бот может оценить возраст потенциального читателя для предложенного текста, выделить корень слова и узнать являются ли пара слов однокоренной.
+Этот бот может оценить возраст потенциального читателя для предложенного текста, выделить корень слова и узнать являются ли пара слов однокоренной.
 
-Является ли пара однокоренной? определяет вероятность того, является ли пара слов однокоренной
+"Является ли пара однокоренной?" определяет, является ли пара слов однокоренной
 
-"Найти корень слова🔎" определяет корень слова
+"Найти корень слова" определяет корень слова предложенного слова
 """, reply_markup=markup)
     users[message.from_user.id] = UserContext.NONE
 
@@ -45,18 +45,18 @@ def help(message):
 
 "Является ли пара однокоренной?" определяет, является ли пара слов однокоренной
 
-"Найти корень слова🔎" определяет корень слова предложенного слова
+"Найти корень слова" определяет корень слова предложенного слова
 """)
     users[message.from_user.id] = UserContext.NONE
 
 
-@bot.message_handler(commands=['cognate'])
+@bot.message_handler(regexp='Является ли пара однокоренной?')
 def cognate(message):
     bot.send_message(message.from_user.id, 'Отправь мне пару слов и я скажу тебе однокоренные они или нет!')
     users[message.from_user.id] = UserContext.COGNATE
 
 
-@bot.message_handler(commands=['root'])
+@bot.message_handler(regexp='Найти корень слова')
 def root(message):
     bot.send_message(message.from_user.id, 'Отправь мне слово и я скажу тебе его корень!')
     users[message.from_user.id] = UserContext.ROOT
@@ -64,9 +64,8 @@ def root(message):
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
-    user_status = users[message.from_user.id]
+    user_status = users.get(message.from_user.id, UserContext.NONE)
     print(user_status)
-
     if user_status == UserContext.NONE:
         help(message)
     elif user_status == UserContext.ROOT:
@@ -83,7 +82,7 @@ def get_text_messages(message):
     elif user_status == UserContext.COGNATE:
         words = message.text.lower().split()
         if not words or len(words) != 2:
-            bot.send_message(message.from_user.id, 'Отправь мне пару слова')
+            bot.send_message(message.from_user.id, 'Отправь мне пару слов')
             return
 
         word1, word2 = words
