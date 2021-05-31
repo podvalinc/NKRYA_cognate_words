@@ -1,8 +1,7 @@
-# @Readability_test_bot
-import telebot
-from baseline import getEvristicCognate, init, getRoots, generate_bitmask, generate_bitmask_for_list, get_only_root
 import os
+import telebot
 from enum import Enum
+from baseline import getEvristicCognate, init, getRoots, generate_bitmask_for_list, get_only_root
 
 token = os.environ.get('AUTH_TOKEN')
 
@@ -22,22 +21,32 @@ users = {}
 @bot.middleware_handler
 def register_user(message):
     users[message.from_user.id] = users.get(message.from_user.id, UserContext.NONE)
-    # message.user_status = users[message.from_user.id]
 
 
-@bot.message_handler(commands=['start', 'help'])
+@bot.message_handler(commands=['start'])
 def start(message):
     markup = telebot.types.ReplyKeyboardMarkup(row_width=3)
-    btn_help = telebot.types.KeyboardButton('/help')
-    btn_root = telebot.types.KeyboardButton('/root')
-    btn_cognate = telebot.types.KeyboardButton('/cognate')
-    markup.row(btn_help, btn_root, btn_cognate)
-    bot.send_message(message.from_user.id, """Добро пожаловать в бота для проекта НКРЯ 2.0 Этот бот может оценить возраст потенциального читателя для предложенного текста, выделить корень слова и узнать являются ли пара слов однокоренной.
+    btn_root = telebot.types.KeyboardButton('Найти корень слова🔎')
+    btn_cognate = telebot.types.KeyboardButton('Является ли пара однокоренной?')
+    markup.row(btn_root, btn_cognate)
+    bot.send_message(message.from_user.id, """Добро пожаловать в бота для проекта НКРЯ 2.0 
+    Этот бот может оценить возраст потенциального читателя для предложенного текста, выделить корень слова и узнать являются ли пара слов однокоренной.
 
-/cognate определяет вероятность того, является ли пара слов однокоренной
+Является ли пара однокоренной? определяет вероятность того, является ли пара слов однокоренной
 
-/root определяет корень слова
+"Найти корень слова🔎" определяет корень слова
 """, reply_markup=markup)
+    users[message.from_user.id] = UserContext.NONE
+
+
+@bot.message_handler(commands=['help'])
+def help(message):
+    bot.send_message(message.from_user.id, """Этот бот может оценить возраст потенциального читателя для предложенного текста, выделить корень слова и узнать являются ли пара слов однокоренной.
+
+"Является ли пара однокоренной?" определяет, является ли пара слов однокоренной
+
+"Найти корень слова🔎" определяет корень слова предложенного слова
+""")
     users[message.from_user.id] = UserContext.NONE
 
 
@@ -57,8 +66,9 @@ def root(message):
 def get_text_messages(message):
     user_status = users[message.from_user.id]
     print(user_status)
+
     if user_status == UserContext.NONE:
-        start(message)
+        help(message)
     elif user_status == UserContext.ROOT:
         words = message.text.lower().split()
         if not words or len(words) != 1:
