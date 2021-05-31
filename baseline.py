@@ -8,9 +8,11 @@ from root_alternation import find_possible_root_alternations
 
 model = None
 
+
 def init(path):
     global model
     model = load_cls(path)
+
 
 def getRoots(words):
     ans = []
@@ -42,7 +44,7 @@ def getInput(word1, word2):
     roots = [(a1[0], a2[0]) for a1 in ans[0] for a2 in ans[1]]
 
     res = []
-    
+
     for r in roots:
         substr = getSubstring(*r)
         if len(r) == 1:
@@ -96,9 +98,10 @@ def parseRow(row):
         a[idx]['Корень_x'] = row[0]
         a[idx]['Корень_y'] = row[1]
         a[idx]['key'] = row[-1]
-    
+
     for_insert.extend(a[1:])
     return row
+
 
 # def prepaire_root(row):
 #     root_split = row[1].split('_')[0].split('(')
@@ -112,32 +115,39 @@ def parseRow(row):
 def prepaire_root(row):
     # print(row)
     root_split = row['root'].split()
-    return generate_bitmask_for_list(row['word'],root_split)
+    return generate_bitmask_for_list(row['word'], root_split)
+
 
 def generate_bitmask(word: str, root: str):
     bitmask = [0] * len(word)
     start_idx = word.find(root)
-    for i in range(start_idx, start_idx+len(root)):
+    for i in range(start_idx, start_idx + len(root)):
         bitmask[i] = 1
     return bitmask
+
 
 def generate_bitmask_for_list(word: str, roots: list):
     bitmask = [0] * len(word)
     for r in roots:
         start_idx = word.find(r)
-        for i in range(start_idx, start_idx+len(r)):
+        for i in range(start_idx, start_idx + len(r)):
             bitmask[i] = 1
     return bitmask
+
 
 def f1_for_row(row):
     return f1_score(row[1], row[2])
 
+
 def get_only_root(pairs):
     return [p[0] for p in pairs]
 
+
 def getEvristicCognate(word1, word2):
-    mix_roots = {"гар":"гор","клан":"клон", "твар":"твор","зар":"зор","плав":"плов", "кас":"кос","мак":"мок","равн":"ровн","раст":"ращ","ращ":"рос","раст":"рос","скак":"скоч","лаг":"лож",
-             "бер":"бир","дер":"дир","мер":"мир","пер":"пир","тер":"тир","жег":"жиг","блест":"блист","стел":"стил","чет":"чит"}
+    mix_roots = {"гар": "гор", "клан": "клон", "твар": "твор", "зар": "зор", "плав": "плов", "кас": "кос", "мак": "мок",
+                 "равн": "ровн", "раст": "ращ", "ращ": "рос", "раст": "рос", "скак": "скоч", "лаг": "лож",
+                 "бер": "бир", "дер": "дир", "мер": "мир", "пер": "пир", "тер": "тир", "жег": "жиг", "блест": "блист",
+                 "стел": "стил", "чет": "чит"}
     root1, root2 = getRoots([word1, word2])
     print(root1, root2)
     root1 = get_only_root(root1)
@@ -151,9 +161,10 @@ def getEvristicCognate(word1, word2):
     for r in root2:
         root2_mix.extend(find_possible_root_alternations(r))
         if r in mix_roots:
-            root1_mix.append(mix_roots[r])      
+            root1_mix.append(mix_roots[r])
 
     return bool(set(root1_mix).intersection(root2_mix))
+
 
 if __name__ == "__main__":
     model = load_cls("models/morphemes-3-5-3-memo_dima.json")
@@ -166,9 +177,6 @@ if __name__ == "__main__":
     # res = getRoots(data2['word'])
     # print(len(res), len(data2['word']))
 
-
-
-
     # roots = [get_only_root(r) for r in res]
 
     # bitmasks = [generate_bitmask_for_list(word, roots=root_) for root_, word in zip(roots, data2['word'])]
@@ -180,8 +188,6 @@ if __name__ == "__main__":
     # data2.to_csv('tmp.csv', index=None)
     # res = data2.apply(f1_for_row, axis=1)
     # print(res.mean(axis=0))
-
-
 
     # print(data[10:30])
     # y_res = data[1]
@@ -207,8 +213,3 @@ if __name__ == "__main__":
     # words_list = list(map(str.strip, words))
     # print(getRoots(words_list))
     # print(getInput(*words_list))
-
-
-
-
-
