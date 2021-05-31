@@ -2,6 +2,7 @@ import os
 import telebot
 from enum import Enum
 from baseline import getEvristicCognate, init, getRoots, generate_bitmask_for_list, get_only_root
+from logger import save_cognate
 
 token = os.environ.get('AUTH_TOKEN')
 
@@ -77,6 +78,11 @@ def get_text_messages(message):
         roots = getRoots([word])
         bitmask = generate_bitmask_for_list(word, get_only_root(roots[0]))
         word_with_root_list = [word[i].upper() if v else word[i] for i, v in enumerate(bitmask)]
+
+        # btn_incorrect = telebot.types.InlineKeyboardButton(text="Тут ошибка", callback_data=f'error-root_{word}')
+        # btn_correct = telebot.types.InlineKeyboardButton(text="Все верно", callback_data=f'correct-root_{word}')
+        # btn_markup = telebot.types.InlineKeyboardMarkup()
+        # btn_markup.add(btn_correct, btn_incorrect)
         bot.send_message(message.from_user.id, f'Большими буквами выделен корень слова\n{"".join(word_with_root_list)}')
 
     elif user_status == UserContext.COGNATE:
@@ -86,10 +92,37 @@ def get_text_messages(message):
             return
 
         word1, word2 = words
+        btn_incorrect = telebot.types.InlineKeyboardButton(text="Тут ошибка",
+                                                           callback_data=f'error-cognate_{word1}&{word2}')
+        btn_correct = telebot.types.InlineKeyboardButton(text="Все верно",
+                                                         callback_data=f'correct-cognate_{word1}&{word2}')
+        btn_markup = telebot.types.InlineKeyboardMarkup()
+        btn_markup.add(btn_correct, btn_incorrect)
         if word1 == word2 or getEvristicCognate(word1, word2):
-            bot.send_message(message.from_user.id, 'Однокоренные')
+            bot.send_message(message.from_user.id, 'Однокоренные', reply_markup=btn_markup)
         else:
-            bot.send_message(message.from_user.id, 'Неоднокоренные')
+            bot.send_message(message.from_user.id, 'Неоднокоренные', reply_markup=btn_markup)
+
+
+def root_handler(query, data):
+    pass
+
+
+inline_handlers = {
+    "error-root": root_handler,
+    "correct-root": root_handler,
+    "error-cognate": lambda x, y: save_cognate(*y.split('&'), status=False),
+    "correct-cognate": lambda x, y: save_cognate(*y.split('&'), status=True),
+}
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def query_text(inline_query):
+    query_type, query_data = inline_query.data.split("_", 1)
+    if query_type in inline_handlers:
+        inline_handlers[query_type](inline_query, query_data)
+
+    bot.answer_callback_query(inline_query.id, "Спасибо за ваш отзыв")
 
 
 if __name__ == '__main__':
