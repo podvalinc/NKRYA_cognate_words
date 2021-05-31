@@ -123,6 +123,7 @@ def query_text(inline_query):
         inline_handlers[query_type](inline_query, query_data)
 
     bot.answer_callback_query(inline_query.id, "Спасибо за ваш отзыв")
+    bot.edit_message_reply_markup(inline_query.message.chat.id, inline_query.message.id)
 
 
 if __name__ == '__main__':
